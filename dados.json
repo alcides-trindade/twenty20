@@ -1,0 +1,54 @@
+{
+    "categories" :[
+        {"id": "album-old", "name": "album-old"},
+        {"id": "album-new", "name":"album-new"}
+    ],
+
+    "products": [
+        {"id": "album-1", 
+        "name": "XX album", 
+        "description": "XX o primeiro EP da twenty20",
+         "price": "18.99", 
+         "category": "album-old", 
+         "image": "imagens/XX.png"},
+        
+        {"id": "album-2", 
+        "name": "Double M or MM", 
+        "description": "MM de YunLilo e Monty",
+         "price": "14.99", 
+         "category": "album-old", 
+         "image": "imagens/MM.png"},
+
+        {"id": "album-3",
+        "name": "Dama em Geneva",
+        "description": "Single da twenty20",
+        "price": "28.99",
+        "category": "album-old",
+        "image": "imagens/GENEVA.png"},
+
+        {"id": "album-4",
+        "name": "Predestinado",
+        "description": "Album de Ricky Star",
+        "price": "25.99",
+        "image": "imagens/Predestinado.png",
+        "category" : "album-new"},
+
+        {"id": "album-5",
+        "name": "Lã de Vicunha",
+        "description": "Single da twenty20",
+        "price": "18.99",
+        "category": "album-new",
+        "image": "imagens/Vicunha.jpeg"},
+
+        {"id": "album-6",
+        "name": "Thiller em Geneva",
+        "description": "Single da twenty20",
+        "price": "17.99",
+        "category": "album-new",
+        "image": "imagens/thriller.png"}
+    ]
+
+}
+    
+
+        

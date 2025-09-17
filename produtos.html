@@ -1,0 +1,325 @@
+<!DOCTYPE html>  
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Alcides Trindade">
+    <meta name="description" content="Twenty20">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.5/css/lightbox.css" integrity="sha512-DKdRaC0QGJ/kjx0U0TtJNCamKnN4l+wsMdION3GG0WVK6hIoJ1UPHRHeXNiGsXdrmq19JJxgIubb/Z7Og2qJww==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+<style>
+     .notificacao {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(25, 135, 84, 0.95); /* verde Bootstrap */
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    display: none;
+    z-index: 9999;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    animation: fadeInOut 3s forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -60%); }
+    10% { opacity: 1; transform: translate(-50%, -50%); }
+    90% { opacity: 1; transform: translate(-50%, -50%); }
+    100% { opacity: 0; transform: translate(-50%, -40%); }
+}
+
+
+</style>
+
+    <title>Loja online da Banda</title>
+</head>
+    <div id="notificacao" class="notificacao"></div>   
+<body class="m-5">
+    <header>
+        <h1 class="text-center">Loja Online da Twenty20</h1>
+    </header>
+
+    <!-- <section id="carrinho" class="mt-5">
+    <h2>Carrinho de Compras</h2>
+    <ul id="lista-carrinho" class="list-group mb-3">
+        
+        itens do carrinho serão inseridos aqui
+    </ul>
+    <p id="total-carrinho"><strong>Total:</strong> €0,00</p>
+</section> -->
+
+    <main>
+        <label for="categoria-select">Filtrar por categoria:</label>
+            <select id="categoria-select" onchange="filtrarProdutos(this.value)"> <br>
+            <option value="Todas">Todas</option>
+  </select>
+       
+       <section class="container">
+  <div class="row" id="product-container">
+    <!-- os cards vão ser inseridos aqui -->
+  </div>
+        <button type="button" class="btn btn-primary"><a href="php/cart.php" class="btn-form">Ver carrinho</a></button>
+  
+</section>
+
+                
+        <br>
+
+        <div id="order-form">
+            <h2>calcular valor total</h2>
+            <form id="calc-form">
+                <label for="product">Escolha um produto:</label>
+                <select name="product" id="product">
+                </select>
+                  <label for="quantity">Quantidades:</label>
+                  <input type="number" id="quantity" name="quantity" min="1" value="1">
+                  <button type="button" id="calculate">Calcular valor</button>  
+            </form>
+            <div id="total-price">
+                
+            </div>
+        </div>
+    </main>
+    
+    
+    <footer class="text-center bg-dark text-white py-3 mt-5">
+        &copy; 2025 Twenty20 - Todos os direitos reservados
+    </footer>
+    
+    <button type="button" class="btn btn-primary">
+        <a href="index.html" class="btn-form">Voltar a página incial</a>
+    </button>
+    
+    <script src="JS/script.js"></script>
+<script>
+        function mostrarNotificacao(mensagem) {
+            const notificacao = document.getElementById("notificacao");
+            notificacao.textContent = mensagem;
+            notificacao.style.display = "block";
+
+    // Esconde automaticamente após 3 segundos
+    setTimeout(() => {
+        notificacao.style.display = "none";
+    }, 3000);
+}
+
+     // carregar o arquivo JSON
+        let produtos = [];
+        let categorias = [];
+
+        function carregarCatalogo() {
+            fetch("dados.json")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Erro ao carregar o arquivo JSON");
+                }
+                return response.json();
+            })
+            .then(data => {
+                produtos = data.products;
+                categorias = data.categories;
+                criarDropdown();
+                populateProductsCalcSelect();
+            })
+            .catch(error => {
+                console.error("Erro ao carregar os dados:", error);
+                const productContainer = document.getElementById("product-container");
+                if (productContainer) {
+                    productContainer.innerHTML = "<p>Não foi possível carregar os produtos. Tente novamente mais tarde.</p>";
+                }
+                });
+    }
+
+        // Função para adicionar um produto ao carrinho
+        // let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+
+
+function adicionarAoCarrinho(idProduto) {
+    const produto = produtos.find(p => p.id === idProduto);
+    if (!produto) return;
+
+     // Agora envia para PHP via fetch
+    fetch("php/carrinho.php", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: new URLSearchParams({
+            acao: "adicionar",
+            id: produto.id,
+            nome: produto.name,
+            preco: produto.price
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.carrinho) {
+           mostrarNotificacao(`${produto.name} adicionado ao carrinho!`);
+            atualizarCarrinhoVisual(data.carrinho, data.total);
+        } else {
+            alert("Erro ao adicionar ao carrinho");
+        }
+    });
+}
+
+function atualizarCarrinho() {
+    const lista = document.getElementById("lista-carrinho");
+    const totalEl = document.getElementById("total-carrinho");
+    lista.innerHTML = "";
+
+    let total = 0;
+
+     Object.entries(carrinho).forEach(([id, item]) => {
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        const precoTotalItem = item.preco * item.quantidade;
+        li.innerHTML = `
+            ${item.name} x ${item.quantidade} 
+            <span>${precoTotalItem.toLocaleString("pt-PT", { style: 'currency', currency: 'EUR' })}</span>
+            <button class="btn btn-sm btn-danger ms-2" onclick="removerDoCarrinho('${item.id}')">Remover</button>
+        `;
+        lista.appendChild(li);
+    });
+
+    totalEl.innerHTML = `<strong>Total:</strong> ${total.toLocaleString("pt-PT", { style: 'currency', currency: 'EUR' })}`;
+     // Salva o carrinho no localStorage
+     localStorage.setItem("carrinho", JSON.stringify(carrinho));
+}
+
+
+function removerDoCarrinho(idProduto) {
+    carrinho = carrinho.filter(item => item.id !== idProduto);
+    atualizarCarrinho();
+}
+
+       // Função para criar e preencher o dropdown de categorias
+      function criarDropdown() {
+        const select= document.getElementById("categoria-select");
+        if (!select) {
+            console.error("Elemento de seleção não encontrado.");
+            return;
+        }
+        select.innerHTML= ""; 
+        select.appendChild(new Option("Todas", "Todas"));
+        categorias.forEach(category => {
+            const option = (new Option(category.name, category.id));
+            select.appendChild(option);
+        });
+       
+        filtrarProdutos("Todas"); 
+      }
+        function filtrarProdutos(categoriaSelecionada) {
+           const listProdutos = document.getElementById("product-container");
+           if (!listProdutos) {
+                console.warn("Elemento de lista de produtos não encontrado.");
+                return;
+            }
+            listProdutos.innerHTML = ""; // Limpa a lista de produtos antes de adicionar novos cards
+
+            //Função para filtrar os produtos com base na categoria selecionada
+            const produtosFiltrados = produtos.filter(produto =>
+                categoriaSelecionada === "Todas" || produto.category === categoriaSelecionada
+            );
+            if (produtosFiltrados.length === 0) {
+                listProdutos.innerHTML = "<p>Nenhum produto encontrado para esta categoria.</p>";
+                return;
+            } else{
+                // Cria e adiciona um "card" HTML para cada produto filtrado
+                produtosFiltrados.forEach(produto => {
+                    const card = document.createElement("div");
+                    card.className = "product-card col-md-4 mb-4";// Adicionando classes Boostrap para layout responsivo
+                    card.innerHTML = `
+                        <a href="${produto.image}" data-lightbox="product-gallery" data-title="${produto.name}" class="img-fluid rounded"> 
+                        <img src="${produto.image}" alt="${produto.name}" class="img-fluid rounded mb-2"></a>
+                        <h3>${produto.name}</h3>
+                        <p>${produto.description}</p>
+                        <p><strong>Preço: ${parseFloat(produto.price).toLocaleString("pt-PT", { style: 'currency', currency: 'EUR' })}</strong></p>
+                        <button class="btn btn-success" onclick="adicionarAoCarrinho('${produto.id}')">Adicionar ao carrinho</button>`;
+
+                    listProdutos.appendChild(card);
+                });
+            }
+            //Atualiza o select com os produtos disponíveis para o cálculo de valor total
+            populateProductsCalcSelect(produtosFiltrados);
+        }
+
+        // Função para preencher o select de produtos para o calculo de valor total
+        function populateProductsCalcSelect(produtosParaSelecionar = produtos) {
+            const productCalcSelect = document.getElementById('product');
+            const calculateButton = document.getElementById('calculate');
+            if (!productCalcSelect){
+                console.warn("Elemento para cálculo encontrado.");
+            }
+            productCalcSelect.innerHTML = ""; // Limpa o select antes de adicionar novos produtos
+            
+
+                if (produtos.length === 0) {
+                    const option = document.createElement("option");
+                    option.textContent = "Nenhum produto disponível";
+                    productCalcSelect.appendChild(option);
+                    productCalcSelect.disabled = true; // Desabilita o select se não houver produtos
+                    return;
+            }
+
+            produtosParaSelecionar.forEach(produto => {
+                const option = document.createElement("option");
+                option.value = produto.id;
+                option.textContent = `${produto.name} - ${parseFloat(produto.price).toFixed(2)}`;
+                option.dataset.price = produto.price; // Armazena o preço no atributo data-price
+                productCalcSelect.appendChild(option);
+            });
+            productCalcSelect.disabled = false; // Habilita o select se houver produtos
+            if (calculateButton) calculateButton.disabled = false; // Habilita o botão de cálculo
+        }
+        //Event listener para o botão de cálculo
+        document.addEventListener('DOMContentLoaded', () => {
+            const calculateButton = document.getElementById('calculate');
+            const productCalcSelect = document.getElementById('product');
+            const totalPriceDisplay = document.getElementById('total-price');
+
+        // Verifica se todos os elementos nescessários para o cálculo estão presentes antes de adicionar o event listener
+        if (calculateButton && productCalcSelect && totalPriceDisplay) {
+            calculateButton.addEventListener('click', () => {
+                const selectedProductOption = productCalcSelect.options[productCalcSelect.selectedIndex];
+                if (!selectedProductOption || selectedProductOption.dataset.price === undefined) {
+                    totalPriceDisplay.textContent = "Por favor, selecione um produto válido.";
+                    return;
+            }
+                const price = parseFloat(selectedProductOption.dataset.price);
+                const quantityInput = document.getElementById('quantity');
+                const quantity = parseInt(quantityInput.value);
+                if (isNaN(price) || isNaN(quantity) || quantity <= 0) {
+                    totalPriceDisplay.textContent = "Por favor, insira uma quantidade válida.";
+                    return;
+                }
+                const total = price * quantity;
+                totalPriceDisplay.innerHTML = `Valor total: <strong>${total.toLocaleString("pt-PT", { style: 'currency', currency: 'EUR' })}</strong>`;
+            });
+        } else {
+            console.warn("Um ou mais elementos para o cálculo não foram encontrados na página. Certifique-se de que #calculate, #product e #total-value existem.");
+        }
+        document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('add-to-cart')) {
+        const produtoId = event.target.getAttribute('data-id');
+        adicionarAoCarrinho(produtoId);
+    }
+});
+
+    });
+        // Chama a função de carregamento qaundo o DOM estiver completamente carregado
+        window.onload = carregarCatalogo;
+</script>
+</body>
+</html>
+    
+
